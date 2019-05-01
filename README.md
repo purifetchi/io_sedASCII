@@ -1,6 +1,6 @@
 # io_sedASCII
 This blender addon allows for exporting and importing various formats used by Serious Editor.
-Originally written by Kisto for Blender 2.59 and fixed by prefetcher (nano) for Blender 2.79b.
+Originally written by Kristo for Blender 2.59 and fixed by prefetcher (nano) for Blender 2.79b.
 
 Currently supported are:
 - Exporting to AMF, ASF, AAF
