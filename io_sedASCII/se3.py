@@ -50,7 +50,7 @@ class ASCIIFileQuery:
             map_str = "POLYGON_MAP_NAME"
             get_type_const = PolygonMap.get_type_const
         
-        reg_exp = "\s+{0}\s*\"([^\.\n]*)\.".format(map_str).encode('ascii')
+        reg_exp = r"\s+{0}\s*\"([^\.\n]*)\.".format(map_str).encode('ascii')
         
         match_obj = re.compile(reg_exp, re.ASCII).match(self.content, self.current_pos)
         
@@ -177,7 +177,7 @@ class ASCIIFileQuery:
         return vert_idx
         
     def get_long_value(self, ident):
-        reg_exp = "\s*{0}\s+(\d+)".format(ident).encode('ascii')
+        reg_exp = r"\s*{0}\s+(\d+)".format(ident).encode('ascii')
         
         match_obj = re.compile(reg_exp, re.ASCII).match(self.content, self.current_pos)
         
@@ -191,7 +191,7 @@ class ASCIIFileQuery:
         return long_value
         
     def get_num_value(self, ident):
-        reg_exp = "\s*{0}\s+([+-]?\d+(?!\.)|[+-]?\d+\.\d+[eE]?[+-]?\d*)".format(ident).encode('ascii')
+        reg_exp = r"\s*{0}\s+([+-]?\d+(?!\.)|[+-]?\d+\.\d+[eE]?[+-]?\d*)".format(ident).encode('ascii')
         
         match_obj = re.compile(reg_exp, re.ASCII).match(self.content, self.current_pos)
         
@@ -205,7 +205,7 @@ class ASCIIFileQuery:
         return num_value
 
     def get_str_value(self, ident):
-        reg_exp = "\s+{0}\s+\"(.*)\"".format(ident).encode('ascii')
+        reg_exp = r"\s+{0}\s+\"(.*)\"".format(ident).encode('ascii')
         
         match_obj = re.compile(reg_exp, re.ASCII).match(self.content, self.current_pos)
         
@@ -219,7 +219,7 @@ class ASCIIFileQuery:
         return str_value
     
     def get_bool_value(self, ident):
-        reg_exp = "\s+{0}\s+(TRUE|FALSE)".format(ident).encode('ascii')
+        reg_exp = r"\s+{0}\s+(TRUE|FALSE)".format(ident).encode('ascii')
         
         match_obj = re.compile(reg_exp, re.ASCII).match(self.content, self.current_pos)
         
