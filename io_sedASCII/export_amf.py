@@ -22,7 +22,7 @@ def write_file(filepath, context):
         non_basis_shape_keys = blutils.get_non_basis_keys(mesh)
         vertex_groups = object.vertex_groups
         
-        has_uv_textures = False
+        has_uv_layers = False
         has_materials = False
         
         se3_layer_name = mesh.name
@@ -68,16 +68,16 @@ def write_file(filepath, context):
         else:
             has_vertex_groups = False
         
-        mesh.update(calc_tessface=True)
-        uv_textures = mesh.tessface_uv_textures
+        mesh.calc_loop_triangles()
+        uv_layers = mesh.uv_layers
         
-        if uv_textures:
-            has_uv_textures = True
+        if uv_layers:
+            has_uv_layers = True
             
             se3_texcoord_maps = []
-            se3_texcoord_map_elem_count = [0] * len(uv_textures)
+            se3_texcoord_map_elem_count = [0] * len(uv_layers)
             
-            for uv_texure in uv_textures:
+            for uv_texure in uv_layers:
                 se3_texcoord_map = se3.VertexMap(se3.VERTEX_MAP_TYPE_TEXCOORD, uv_texure.name)
                 se3_texcoord_maps.append(se3_texcoord_map)
             
@@ -93,7 +93,7 @@ def write_file(filepath, context):
             vertex_index = vertex.index
             vertex_co = vertex.co
             
-            se3_building_vertex = se3.BuildingVertex(len(uv_textures))
+            se3_building_vertex = se3.BuildingVertex(len(uv_layers))
             
             se3_point = transform_data_to_se3_vec(vertex_co)
             se3_basic_morph_map.elements.append(se3_point)
@@ -173,16 +173,19 @@ def write_file(filepath, context):
                 se3_layer.surface_maps.append(se3_surface_map)
             se3_polygon_maps.extend(se3_surface_maps)
         
-        faces = mesh.tessfaces
+        polygons = mesh.polygons
         
         se3_vertex_map_stride = se3_vertex_map_index
         se3_vertex_count = len(mesh.vertices)
-        if faces:
-            for face in faces:
-                face_index = face.index
+
+        used_loops = {}
+
+        if polygons:
+            for polygon in polygons:
+                polygon_index = polygon.index
                 se3_polygon = []
-                
-                for uv_vertex_index, vertex_index in enumerate(face.vertices):
+
+                for vertex_index in polygon.vertices:
                     vertex = mesh.vertices[vertex_index]
                     se3_building_vertex = se3_building_vertices[vertex_index]
                     se3_first_vertex = se3_building_vertex.first_vertex
@@ -190,30 +193,47 @@ def write_file(filepath, context):
                     se3_found_new_uv_pointers = False
                     
                     se3_uv_pointers = []
-                    if has_uv_textures:
-                        for uv_texture_index, uv_texture in enumerate(uv_textures):
-                            texture_face = uv_texture.data[face_index]
-                            uv = texture_face.uv[uv_vertex_index]
+                    if has_uv_layers:
+                        for uv_layer_index, uv_layer in enumerate(uv_layers):
+                            if uv_layer.name not in used_loops:
+                                used_loops[uv_layer.name] = []
+
+                            # iterate mesh.loops to find new loop with .vertex_index == vertex_index 
+                            loop_index = -1
+
+                            for tri in mesh.loop_triangles:
+                                for tri_loop_index in tri.loops:
+                                    loop = mesh.loops[tri_loop_index]
+                                    if loop.vertex_index == vertex_index and loop not in used_loops[uv_layer.name]:
+                                        loop_index = loop.index
+                                        used_loops[uv_layer.name].append(loop)
+                                        break
+                                else:
+                                    continue
+                                break
+
+                            uv = uv_layer.data[loop_index].uv
+
                             se3_uv = (uv[0], (-uv[1]) + 1)
-                            se3_uv_vertices = se3_building_vertex.uv_vertices[uv_texture_index]
-                            se3_texcoord_map_index = se3_vertex_map_stride + uv_texture_index + 1
+                            se3_uv_vertices = se3_building_vertex.uv_vertices[uv_layer_index]
+                            se3_texcoord_map_index = se3_vertex_map_stride + uv_layer_index + 1
                             
                             se3_uv_vertex = se3_uv_vertices.get_vertex_with(se3_uv)
-                            
-                            if se3_uv_vertex and se3_uv_vertex.vertex_index == vertex_index and se3_uv_vertex.map_index == uv_texture_index:
+
+                            if se3_uv_vertex and se3_uv_vertex.vertex_index == vertex_index and se3_uv_vertex.map_index == uv_layer_index:
                                 se3_uv_pointers.append((se3_texcoord_map_index, se3_uv_vertex.map_element_index))
                             else:
                                 se3_found_new_uv_pointers = True
                                 
-                                se3_texcoord_maps[uv_texture_index].elements.append(se3_uv)
+                                se3_texcoord_maps[uv_layer_index].elements.append(se3_uv)
                                 
-                                se3_texcoord_map_elem_index = se3_texcoord_map_elem_count[uv_texture_index]
+                                se3_texcoord_map_elem_index = se3_texcoord_map_elem_count[uv_layer_index]
                                 se3_uv_pointers.append((se3_texcoord_map_index, se3_texcoord_map_elem_index))
-                                se3_uv_vertex = se3.UvVertex(se3_uv, se3_texcoord_map_elem_index, vertex_index, uv_texture_index)
+                                se3_uv_vertex = se3.UvVertex(se3_uv, se3_texcoord_map_elem_index, vertex_index, uv_layer_index)
                                 
                                 se3_uv_vertices.append(se3_uv_vertex)
                                 
-                                se3_texcoord_map_elem_count[uv_texture_index] += 1
+                                se3_texcoord_map_elem_count[uv_layer_index] += 1
                     
                     if se3_found_new_uv_pointers:
                         se3_need_new_vertex = True if se3_first_vertex.uv_pointers else False
@@ -237,8 +257,8 @@ def write_file(filepath, context):
                 se3_polygons.append(se3_polygon)
                 
                 if has_materials:
-                    se3_surface_map = se3_surface_maps[face.material_index]
-                    se3_surface_map.polygons.append(se3_polygons_count + face_index)
+                    se3_surface_map = se3_surface_maps[polygon.material_index]
+                    se3_surface_map.polygons.append(se3_polygons_count + polygon_index)
     
     se3_mesh.write_to_file(amf)
     amf.close()

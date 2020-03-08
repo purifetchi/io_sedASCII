@@ -315,7 +315,7 @@ def read_file(operator, context):
             mesh.edges[fgon_edge_index].is_fgon = True
         
         for uv_index, se3_texcoord_map in enumerate(se3_layer.texcoord_maps):
-            uv_tex = mesh.uv_textures.new(se3_texcoord_map.name)
+            uv_tex = mesh.uv_layers.new(se3_texcoord_map.name)
             uv_loop = mesh.uv_layers[0]
             
             for face_index, tex_data in enumerate(uv_tex.data):
@@ -332,11 +332,10 @@ def read_file(operator, context):
         
         obj = bpy.data.objects.new(se3_layer.name, mesh)
         
-        scene = context.scene
-        scene.objects.link(obj)
-        scene.objects.active = obj
+        context.collection.objects.link(obj)
+        context.view_layer.objects.active = obj
         
-        obj.select = True
+        obj.select_set(True)
         
         se3_non_basic_morph_map = se3_layer.non_basic_morph_maps
         
@@ -395,6 +394,6 @@ def read_file(operator, context):
         obj.matrix_world = tranf_mat
         bpy.ops.object.transform_apply(rotation=True)
         
-        scene.update()
+        context.view_layer.update()
     
     return {'FINISHED'}

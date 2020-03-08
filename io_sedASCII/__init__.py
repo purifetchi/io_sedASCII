@@ -2,7 +2,7 @@ bl_info = {
     "name": "Serious Editor ASCII formats",
     "author": "Tomislav Kristo & nano",
     "version": (1,0),
-    "blender": (2,7,8),
+    "blender": (2,80,0),
     "api": 33333,
     "location": "File > Import-Export > Serious Editor 3 ASCII",
     "description": "Allows for the import & export of various data formats used by Serious Editor.",
@@ -41,7 +41,7 @@ class ImportSEd3AMF(bpy.types.Operator, ImportHelper):
     bl_label = "Import AMF"
 
     filename_ext = ".amf"
-    filter_glob = bpy.props.StringProperty(default="*.amf", options={'HIDDEN'})
+    filter_glob : bpy.props.StringProperty(default="*.amf", options={'HIDDEN'})
     
     @classmethod
     def poll(cls, context):
@@ -57,7 +57,7 @@ class ImportSEd3ASF(bpy.types.Operator, ImportHelper):
     bl_label = "Import ASF"
 
     filename_ext = ".asf"
-    filter_glob = bpy.props.StringProperty(default="*.asf", options={'HIDDEN'})
+    filter_glob : bpy.props.StringProperty(default="*.asf", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -73,7 +73,7 @@ class ExportSEd3AMF(bpy.types.Operator, ExportHelper):
     bl_label = "Export AMF"
     
     filename_ext = ".amf"
-    filter_glob = bpy.props.StringProperty(default="*.amf", options={'HIDDEN'})
+    filter_glob : bpy.props.StringProperty(default="*.amf", options={'HIDDEN'})
     
     @classmethod
     def poll(cls, context):
@@ -102,7 +102,7 @@ class ExportSEd3ASF(bpy.types.Operator, ExportHelper):
     bl_label = "Export ASF"
     
     filename_ext = ".asf"
-    filter_glob = bpy.props.StringProperty(default="*.asf", options={'HIDDEN'})
+    filter_glob : bpy.props.StringProperty(default="*.asf", options={'HIDDEN'})
     
     @classmethod
     def poll(cls, context):
@@ -118,9 +118,9 @@ class ExportSEd3AAF(bpy.types.Operator, ExportHelper):
     bl_label = "Export AAF"
     
     filename_ext = ".aaf"
-    filter_glob = bpy.props.StringProperty(default="*.aaf", options={'HIDDEN'})
+    filter_glob : bpy.props.StringProperty(default="*.aaf", options={'HIDDEN'})
     
-    animation_name = bpy.props.StringProperty(name="Animation Name", description="Animation name to export", maxlen=256)
+    animation_name : bpy.props.StringProperty(name="Animation Name", description="Animation name to export", maxlen=256)
     
     @classmethod
     def poll(self, context):
@@ -164,8 +164,8 @@ def register():
     bpy.utils.register_class(INFO_MT_file_import_sed3)
     bpy.utils.register_class(INFO_MT_file_export_sed3)
     
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
     bpy.utils.unregister_class(ImportSEd3AMF)
@@ -178,8 +178,8 @@ def unregister():
     bpy.utils.unregister_class(INFO_MT_file_import_sed3)
     bpy.utils.unregister_class(INFO_MT_file_export_sed3)
     
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 if __name__ == "__main__":
     register()
